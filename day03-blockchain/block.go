@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/binary"
 	"log"
 	"time"
@@ -47,10 +46,15 @@ func NewBlock(data string, prevBlockHash []byte) *Block {
 		Hash:       []byte{},
 		Data:       []byte(data),
 	}
-	block.SetHash()
+	//block.SetHash()
+	pow := NewProofOfWork(&block)
+	hash, nonce := pow.Run()
+	block.Hash = hash
+	block.Nonce = nonce
 	return &block
 }
-func (block *Block) SetHash() {
+
+/*func (block *Block) SetHash() {
 	tmp := [][]byte{
 		Uint64ToByte(block.Version),
 		block.PrevHash,
@@ -64,4 +68,4 @@ func (block *Block) SetHash() {
 	blockInfo := bytes.Join(tmp, []byte{})
 	hash := sha256.Sum256(blockInfo)
 	block.Hash = hash[:]
-}
+}*/
