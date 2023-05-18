@@ -2,8 +2,8 @@ package main
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/binary"
+	"encoding/gob"
 	"log"
 	"time"
 )
@@ -47,10 +47,37 @@ func NewBlock(data string, prevBlockHash []byte) *Block {
 		Hash:       []byte{},
 		Data:       []byte(data),
 	}
-	block.SetHash()
+	//block.SetHash()
+	pow := NewProofOfWork(&block)
+	hash, nonce := pow.Run()
+	block.Hash = hash
+	block.Nonce = nonce
 	return &block
 }
-func (block *Block) SetHash() {
+
+// Serialize 将区块数据序列化
+func (block *Block) Serialize() []byte {
+	var buf bytes.Buffer
+	encoder := gob.NewEncoder(&buf)
+	err := encoder.Encode(&block)
+	if err != nil {
+		log.Panic(err)
+	}
+	return buf.Bytes()
+}
+
+//将读取的数据反序列化成区块
+func Desrialize(data []byte) Block {
+	decoder := gob.NewDecoder(bytes.NewReader(data))
+	var block Block
+	err := decoder.Decode(&block)
+	if err != nil {
+		log.Panic(err)
+	}
+	return block
+}
+
+/*func (block *Block) SetHash() {
 	tmp := [][]byte{
 		Uint64ToByte(block.Version),
 		block.PrevHash,
@@ -64,4 +91,4 @@ func (block *Block) SetHash() {
 	blockInfo := bytes.Join(tmp, []byte{})
 	hash := sha256.Sum256(blockInfo)
 	block.Hash = hash[:]
-}
+}*/
